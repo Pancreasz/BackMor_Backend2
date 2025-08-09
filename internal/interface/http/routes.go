@@ -8,8 +8,6 @@ func SetUpRoutes(
 	app *fiber.App,
 	userService UserService,
 ) {
-	api := app.Group("/v1/api") // นี่อ่อ
+	api := app.Group("/v1/api")
 	SetUpUserRoutes(api, userService)
 }
-
-//  อ่าา ห้ามเกิน 2 version ได้ๆ ก็แค่่นี้ใช่ป่ะ
