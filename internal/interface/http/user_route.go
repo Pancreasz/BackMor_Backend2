@@ -1,13 +1,12 @@
 package http
 
 import (
-	// "github.com/Pancreasz/BackMor_Backend2/internal/usecase"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gin-gonic/gin"
 )
 
-func SetUpUserRoutes(api fiber.Router, userService UserService) {
+func SetUpUserRoutes(api gin.IRouter, userService UserService) {
 	userHandler := NewUserServiceHandler(userService)
 	userRoutes := api.Group("/user")
-	userRoutes.Get("/", userHandler.GetAllUser)
-	userRoutes.Get("/id/:id", userHandler.GetUserByID)
+	userRoutes.GET("/", userHandler.GetAllUser)
+	userRoutes.GET("/id/:id", userHandler.GetUserByID)
 }

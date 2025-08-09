@@ -9,11 +9,11 @@ import (
 	repo "github.com/Pancreasz/BackMor_Backend2/internal/interface/persistance"
 	"github.com/Pancreasz/BackMor_Backend2/internal/usecase"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	app := fiber.New()
+	app := gin.Default()
 	conn := db.Connect()
 	defer conn.Close()
 
@@ -25,5 +25,5 @@ func main() {
 		userService,
 	)
 
-	log.Fatal(app.Listen(":8000"))
+	log.Fatal(app.Run(":8000"))
 }

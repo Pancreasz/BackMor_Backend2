@@ -1,11 +1,11 @@
 package http
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"github.com/gin-gonic/gin"
 )
 
 func SetUpRoutes(
-	app *fiber.App,
+	app *gin.Engine,
 	userService UserService,
 ) {
 	api := app.Group("/v1/api")

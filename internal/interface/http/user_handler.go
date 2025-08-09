@@ -3,12 +3,13 @@ package http
 import (
 	"context"
 	"errors"
+	"net/http"
 	"strconv"
 
 	response "github.com/Pancreasz/BackMor_Backend2/infrastructure/router"
 	"github.com/Pancreasz/BackMor_Backend2/internal/entity"
 	"github.com/Pancreasz/BackMor_Backend2/internal/usecase"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gin-gonic/gin"
 )
 
 type UserService interface {
@@ -24,28 +25,33 @@ func NewUserServiceHandler(service UserService) *UserHandler {
 	return &UserHandler{service: service}
 }
 
-func (h *UserHandler) GetUserByID(c *fiber.Ctx) error {
+func (h *UserHandler) GetUserByID(c *gin.Context) {
 	ctx := context.Background()
-	user_id, err := strconv.ParseInt(c.Params("id"), 10, 32)
+	userID, err := strconv.ParseInt(c.Param("id"), 10, 32)
 	if err != nil {
-		return response.SendErrorResponse(c, fiber.StatusBadRequest, err)
+		response.SendErrorResponse(c, http.StatusBadRequest, err)
+		return
 	}
 
-	user, err := h.service.GetUserByID(ctx, int32(user_id))
+	user, err := h.service.GetUserByID(ctx, int32(userID))
 	if err != nil {
 		if errors.Is(err, usecase.ErrUserNotFound) {
-			return response.SendErrorResponse(c, fiber.StatusNotFound, err)
+			response.SendErrorResponse(c, http.StatusNotFound, err)
+			return
 		}
-		return response.SendErrorResponse(c, fiber.StatusInternalServerError, err)
+		response.SendErrorResponse(c, http.StatusInternalServerError, err)
+		return
 	}
-	return response.SendSuccessResponse(c, user)
+
+	response.SendSuccessResponse(c, user)
 }
 
-func (h *UserHandler) GetAllUser(c *fiber.Ctx) error {
-	ctx := context.Background()
+func (h *UserHandler) GetAllUser(c *gin.Context) {
+	ctx := c.Request.Context()
 	users, err := h.service.ListUsers(ctx)
 	if err != nil {
-		return response.SendErrorResponse(c, fiber.StatusInternalServerError, err)
+		response.SendErrorResponse(c, http.StatusInternalServerError, err)
+		return
 	}
-	return response.SendSuccessResponse(c, users)
+	response.SendSuccessResponse(c, users)
 }
