@@ -1,4 +1,4 @@
-module api-go
+module github.com/Pancreasz/BackMor_Backend2
 
 go 1.24.5
 

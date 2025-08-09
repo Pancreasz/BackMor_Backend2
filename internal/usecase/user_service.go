@@ -1,8 +1,9 @@
 package service
 
 import (
-	entity "api-go/internal/domain"
 	"context"
+
+	entity "github.com/Pancreasz/BackMor_Backend2/internal/entity"
 )
 
 type UserRepository interface {

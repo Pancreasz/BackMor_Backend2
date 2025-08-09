@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 
-	"api-go/internal/interface/http"
+	"github.com/Pancreasz/BackMor_Backend2/internal/interface/http"
 
-	"api-go/infrastructure/db"
-	repo "api-go/internal/interface/persistance"
+	"github.com/Pancreasz/BackMor_Backend2/infrastructure/db"
+	repo "github.com/Pancreasz/BackMor_Backend2/internal/interface/persistance"
 
 	"github.com/gofiber/fiber/v2"
 )

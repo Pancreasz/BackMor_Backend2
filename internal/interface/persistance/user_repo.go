@@ -1,10 +1,11 @@
 package repository
 
 import (
-	entity "api-go/internal/domain"
-	"api-go/pkg/database/user_database" // sqlc generated package
 	"context"
 	"database/sql"
+
+	entity "github.com/Pancreasz/BackMor_Backend2/internal/entity"
+	"github.com/Pancreasz/BackMor_Backend2/pkg/database/user_database" // sqlc generated package
 )
 
 type userRepository struct {
