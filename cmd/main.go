@@ -1,33 +1,29 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"log"
 
 	"github.com/Pancreasz/BackMor_Backend2/internal/interface/http"
 
 	"github.com/Pancreasz/BackMor_Backend2/infrastructure/db"
 	repo "github.com/Pancreasz/BackMor_Backend2/internal/interface/persistance"
+	"github.com/Pancreasz/BackMor_Backend2/internal/usecase"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
-
+	app := fiber.New()
 	conn := db.Connect()
 	defer conn.Close()
 
-	repo := repo.NewUserRepository(conn)
-	ctx := context.Background()
+	userRepo := repo.NewUserRepository(conn)
+	userService := usecase.NewUserService(userRepo)
 
-	user, err := repo.GetByID(ctx, 1)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("user: %+v\n", user)
+	http.SetUpRoutes(
+		app,
+		userService,
+	)
 
-	app := fiber.New()
-	http.SetUpCustomerRoutes(app)
 	log.Fatal(app.Listen(":8000"))
 }
