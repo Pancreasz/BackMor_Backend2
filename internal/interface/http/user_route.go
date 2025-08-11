@@ -9,4 +9,5 @@ func SetUpUserRoutes(api gin.IRouter, userService UserService) {
 	userRoutes := api.Group("/user")
 	userRoutes.GET("/", userHandler.GetAllUser)
 	userRoutes.GET("/id/:id", userHandler.GetUserByID)
+	userRoutes.POST("/", userHandler.InsertNewUser)
 }

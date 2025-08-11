@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	entity "github.com/Pancreasz/BackMor_Backend2/internal/entity"
 )
@@ -11,6 +12,7 @@ import (
 type UserRepository interface {
 	GetByID(ctx context.Context, id int32) (entity.User, error)
 	List(ctx context.Context) ([]entity.User, error)
+	InsertUser(ctx context.Context, name string, sex string) (entity.User, error)
 }
 
 type UserService struct {
@@ -38,4 +40,13 @@ func (s *UserService) ListUsers(ctx context.Context) ([]entity.User, error) {
 		return nil, ErrFailedToRetrieveUsers
 	}
 	return users, nil
+}
+
+func (s *UserService) InsertNewUser(ctx context.Context, name string, sex string) (*entity.User, error) {
+	user, err := s.repo.InsertUser(ctx, name, sex)
+	fmt.Println("service", name, sex)
+	if err != nil {
+		return nil, ErrFailedToInsertUser
+	}
+	return &user, nil
 }

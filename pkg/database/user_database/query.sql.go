@@ -20,6 +20,24 @@ func (q *Queries) GetUser(ctx context.Context, id int32) (UserTable, error) {
 	return i, err
 }
 
+const insertUser = `-- name: InsertUser :one
+INSERT INTO user_table (name, sex)
+VALUES ($1, $2)
+RETURNING id, name, sex
+`
+
+type InsertUserParams struct {
+	Name string
+	Sex  string
+}
+
+func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (UserTable, error) {
+	row := q.db.QueryRowContext(ctx, insertUser, arg.Name, arg.Sex)
+	var i UserTable
+	err := row.Scan(&i.ID, &i.Name, &i.Sex)
+	return i, err
+}
+
 const listUsers = `-- name: ListUsers :many
 SELECT id, name, sex FROM user_table
 `

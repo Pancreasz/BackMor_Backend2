@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -15,6 +16,7 @@ import (
 type UserService interface {
 	GetUserByID(ctx context.Context, id int32) (*entity.User, error)
 	ListUsers(ctx context.Context) ([]entity.User, error)
+	InsertNewUser(ctx context.Context, name string, sex string) (*entity.User, error)
 }
 
 type UserHandler struct {
@@ -26,7 +28,7 @@ func NewUserServiceHandler(service UserService) *UserHandler {
 }
 
 func (h *UserHandler) GetUserByID(c *gin.Context) {
-	ctx := context.Background()
+	ctx := c.Request.Context()
 	userID, err := strconv.ParseInt(c.Param("id"), 10, 32)
 	if err != nil {
 		response.SendErrorResponse(c, http.StatusBadRequest, err)
@@ -54,4 +56,26 @@ func (h *UserHandler) GetAllUser(c *gin.Context) {
 		return
 	}
 	response.SendSuccessResponse(c, users)
+}
+
+func (h *UserHandler) InsertNewUser(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	var req struct {
+		Name string `json:"name" binding:"required"`
+		Sex  string `json:"sex" binding:"required"`
+	}
+	fmt.Println("handler", req.Name, req.Sex)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.SendErrorResponse(c, http.StatusBadRequest, err)
+		return
+	}
+
+	user, err := h.service.InsertNewUser(ctx, req.Name, req.Sex)
+	if err != nil {
+		response.SendErrorResponse(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.SendSuccessResponse(c, user)
 }
