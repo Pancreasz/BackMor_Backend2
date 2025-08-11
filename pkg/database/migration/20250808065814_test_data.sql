@@ -1,9 +1,9 @@
 -- +goose Up
 -- +goose StatementBegin
-INSERT INTO user_table (id, name, sex)
-VALUES (1, 'karn', 'gay');
-INSERT INTO user_table (id, name, sex)
-VALUES (2, 'pla3', 'fish');
+INSERT INTO user_table (username, name, sex, age, hash_pass, email)
+VALUES ('karn', 'suksom', 'gay', 99, 'oasis', 'liam@noel.com');
+INSERT INTO user_table (username, name, sex, age, hash_pass, email)
+VALUES ('pla3', 'pla2', 'fish', 88, 'blur', 'song2@gmail.com');
 -- +goose StatementEnd
 
 -- +goose Down

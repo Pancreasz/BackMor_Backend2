@@ -4,8 +4,18 @@
 
 package user_database
 
+import (
+	"database/sql"
+)
+
 type UserTable struct {
-	ID   int32
-	Name string
-	Sex  string
+	ID               int32
+	Username         string
+	Name             string
+	Sex              string
+	Age              int32
+	HashPass         string
+	Email            string
+	ImagePath        sql.NullString
+	CreatedTimestamp sql.NullTime
 }

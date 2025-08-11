@@ -7,39 +7,81 @@ package user_database
 
 import (
 	"context"
+	"database/sql"
 )
 
 const getUser = `-- name: GetUser :one
-SELECT id, name, sex FROM user_table WHERE id = $1
+SELECT id, username, name, sex, age, hash_pass, email, image_path, created_timestamp FROM user_table WHERE id = $1
 `
 
 func (q *Queries) GetUser(ctx context.Context, id int32) (UserTable, error) {
 	row := q.db.QueryRowContext(ctx, getUser, id)
 	var i UserTable
-	err := row.Scan(&i.ID, &i.Name, &i.Sex)
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Name,
+		&i.Sex,
+		&i.Age,
+		&i.HashPass,
+		&i.Email,
+		&i.ImagePath,
+		&i.CreatedTimestamp,
+	)
 	return i, err
 }
 
 const insertUser = `-- name: InsertUser :one
-INSERT INTO user_table (name, sex)
-VALUES ($1, $2)
-RETURNING id, name, sex
+INSERT INTO user_table (username, name, sex, age, hash_pass, email)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, username, name, sex, age, hash_pass, email, image_path
 `
 
 type InsertUserParams struct {
-	Name string
-	Sex  string
+	Username string
+	Name     string
+	Sex      string
+	Age      int32
+	HashPass string
+	Email    string
 }
 
-func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (UserTable, error) {
-	row := q.db.QueryRowContext(ctx, insertUser, arg.Name, arg.Sex)
-	var i UserTable
-	err := row.Scan(&i.ID, &i.Name, &i.Sex)
+type InsertUserRow struct {
+	ID        int32
+	Username  string
+	Name      string
+	Sex       string
+	Age       int32
+	HashPass  string
+	Email     string
+	ImagePath sql.NullString
+}
+
+func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (InsertUserRow, error) {
+	row := q.db.QueryRowContext(ctx, insertUser,
+		arg.Username,
+		arg.Name,
+		arg.Sex,
+		arg.Age,
+		arg.HashPass,
+		arg.Email,
+	)
+	var i InsertUserRow
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Name,
+		&i.Sex,
+		&i.Age,
+		&i.HashPass,
+		&i.Email,
+		&i.ImagePath,
+	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, name, sex FROM user_table
+SELECT id, username, name, sex, age, hash_pass, email, image_path, created_timestamp FROM user_table
 `
 
 func (q *Queries) ListUsers(ctx context.Context) ([]UserTable, error) {
@@ -51,7 +93,17 @@ func (q *Queries) ListUsers(ctx context.Context) ([]UserTable, error) {
 	var items []UserTable
 	for rows.Next() {
 		var i UserTable
-		if err := rows.Scan(&i.ID, &i.Name, &i.Sex); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Name,
+			&i.Sex,
+			&i.Age,
+			&i.HashPass,
+			&i.Email,
+			&i.ImagePath,
+			&i.CreatedTimestamp,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
