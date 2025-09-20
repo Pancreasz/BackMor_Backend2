@@ -16,8 +16,8 @@ func Goth_init() {
 			"http://localhost:8000/v1/api/auth/google/callback",
 		),
 		facebook.New(
-			os.Getenv("painai_facebook_id"),
-			os.Getenv("painai_facebook_secret"),
+			os.Getenv("facebook_ID"),
+			os.Getenv("facebook_secret"),
 			"http://localhost:8000/v1/api/auth/facebook/callback",
 		),
 	)
