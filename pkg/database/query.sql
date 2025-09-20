@@ -5,7 +5,7 @@ SELECT * FROM user_table WHERE id = $1;
 SELECT * FROM user_table;
 
 -- name: InsertUser :one
-INSERT INTO user_table (name, sex)
-VALUES ($1, $2)
-RETURNING id, name, sex;
+INSERT INTO user_table (username, name, sex, age, hash_pass, email)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, username, name, sex, age, hash_pass, email, image_path;
 

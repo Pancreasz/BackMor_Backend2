@@ -39,11 +39,15 @@ func (r *userRepository) List(ctx context.Context) ([]entity.User, error) {
 	return users, nil
 }
 
-func (r *userRepository) InsertUser(ctx context.Context, name string, sex string) (entity.User, error) {
+func (r *userRepository) InsertUser(ctx context.Context, username string, name string, sex string, age int32, hashpass string, email string) (entity.User, error) {
 	// Prepare params struct expected by sqlc generated method
 	params := user_database.InsertUserParams{
-		Name: name,
-		Sex:  sex,
+		Username: username,
+		Name:     name,
+		Sex:      sex,
+		Age:      age,
+		HashPass: hashpass,
+		Email:    email,
 	}
 	fmt.Println(params)
 	// Call the generated InsertUser method
@@ -52,13 +56,31 @@ func (r *userRepository) InsertUser(ctx context.Context, name string, sex string
 		return entity.User{}, err
 	}
 
-	return mapUserTableToEntity(user), nil
+	return mapUserTableToEntityFromInsertUserRow(user), nil
 }
 
 func mapUserTableToEntity(u user_database.UserTable) entity.User {
 	return entity.User{
-		ID:   uint(u.ID),
-		Name: u.Name,
-		Sex:  u.Sex,
+		ID:        uint(u.ID),
+		Username:  u.Username,
+		Name:      u.Name,
+		Sex:       u.Sex,
+		Age:       uint(u.Age),
+		HashPass:  u.HashPass,
+		Email:     u.Email,
+		ImagePath: u.ImagePath.String,
+	}
+}
+
+func mapUserTableToEntityFromInsertUserRow(u user_database.InsertUserRow) entity.User {
+	return entity.User{
+		ID:        uint(u.ID),
+		Username:  u.Username,
+		Name:      u.Name,
+		Sex:       u.Sex,
+		Age:       uint(u.Age),
+		HashPass:  u.HashPass,
+		Email:     u.Email,
+		ImagePath: u.ImagePath.String,
 	}
 }

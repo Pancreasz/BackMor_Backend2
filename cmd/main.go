@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/Pancreasz/BackMor_Backend2/infrastructure/config"
 	"github.com/Pancreasz/BackMor_Backend2/internal/interface/http"
 
 	"github.com/Pancreasz/BackMor_Backend2/infrastructure/db"
@@ -16,6 +17,9 @@ func main() {
 	app := gin.Default()
 	conn := db.Connect()
 	defer conn.Close()
+
+	config.Session_init()
+	config.Goth_init()
 
 	userRepo := repo.NewUserRepository(conn)
 	userService := usecase.NewUserService(userRepo)

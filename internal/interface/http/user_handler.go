@@ -16,7 +16,7 @@ import (
 type UserService interface {
 	GetUserByID(ctx context.Context, id int32) (*entity.User, error)
 	ListUsers(ctx context.Context) ([]entity.User, error)
-	InsertNewUser(ctx context.Context, name string, sex string) (*entity.User, error)
+	InsertNewUser(ctx context.Context, username string, name string, sex string, age int32, hashpass string, email string) (*entity.User, error)
 }
 
 type UserHandler struct {
@@ -62,8 +62,12 @@ func (h *UserHandler) InsertNewUser(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	var req struct {
-		Name string `json:"name" binding:"required"`
-		Sex  string `json:"sex" binding:"required"`
+		Username string `json:"username" binding:"required"`
+		Name     string `json:"name" binding:"required"`
+		Sex      string `json:"sex" binding:"required"`
+		Age      int32  `json:"age" binding:"required"`
+		Hashpass string `json:"hashpass" binding:"required"`
+		Email    string `json:"email" binding:"required"`
 	}
 	fmt.Println("handler", req.Name, req.Sex)
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -71,7 +75,7 @@ func (h *UserHandler) InsertNewUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.service.InsertNewUser(ctx, req.Name, req.Sex)
+	user, err := h.service.InsertNewUser(ctx, req.Username, req.Name, req.Sex, req.Age, req.Hashpass, req.Email)
 	if err != nil {
 		response.SendErrorResponse(c, http.StatusInternalServerError, err)
 		return
