@@ -9,7 +9,6 @@ import (
 )
 
 func Goth_init() {
-
 	goth.UseProviders(
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),
