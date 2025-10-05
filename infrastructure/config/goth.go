@@ -21,6 +21,7 @@ func Goth_init() {
 			os.Getenv("facebook_ID"),
 			os.Getenv("facebook_secret"),
 			"http://localhost:8000/v1/api/auth/facebook/callback",
+			"public_profile", "email",
 		),
 	)
 }

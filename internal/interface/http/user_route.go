@@ -12,7 +12,7 @@ func SetUpUserRoutes(api gin.IRouter, userService UserService) {
 
 	userRoutes.GET("/", middleware.AuthRequired(), userHandler.GetAllUser)
 	userRoutes.GET("/id/:id", userHandler.GetUserByID)
-	userRoutes.GET("/by-email", userHandler.GetUserByEmail)
+	userRoutes.GET("/email/:email", userHandler.GetUserByEmail)
 	userRoutes.POST("/", userHandler.InsertNewUser)
 
 }

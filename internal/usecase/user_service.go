@@ -37,6 +37,17 @@ func (s *UserService) GetUserByID(ctx context.Context, id uuid.UUID) (*entity.Us
 	return &user, nil
 }
 
+func (s *UserService) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+	user, err := s.repo.GetByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrUserNotFound
+		}
+		return nil, ErrFailedToRetrieveUsers
+	}
+	return &user, nil
+}
+
 func (s *UserService) ListUsers(ctx context.Context) ([]entity.User, error) {
 	users, err := s.repo.List(ctx)
 	if err != nil {
@@ -52,8 +63,4 @@ func (s *UserService) InsertNewUser(ctx context.Context, email string, passwordH
 		return nil, ErrFailedToInsertUser
 	}
 	return &user, nil
-}
-
-func (s *UserService) GetUserByEmail(ctx context.Context, email string) (entity.User, error) {
-	return s.repo.GetByEmail(ctx, email)
 }

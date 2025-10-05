@@ -16,9 +16,9 @@ import (
 
 type UserService interface {
 	GetUserByID(ctx context.Context, id uuid.UUID) (*entity.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
 	ListUsers(ctx context.Context) ([]entity.User, error)
 	InsertNewUser(ctx context.Context, email string, passwordHash string, displayName string, avatarURL *string, bio *string) (*entity.User, error)
-	GetUserByEmail(ctx context.Context, email string) (entity.User, error)
 }
 
 type UserHandler struct {

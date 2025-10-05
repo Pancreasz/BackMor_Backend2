@@ -29,6 +29,14 @@ func (r *userRepository) GetByID(ctx context.Context, id uuid.UUID) (entity.User
 	return mapUserRowToEntity(userRow), nil
 }
 
+func (r *userRepository) GetByEmail(ctx context.Context, email string) (entity.User, error) {
+	userTable, err := r.queries.GetUserbyEmail(ctx, email)
+	if err != nil {
+		return entity.User{}, err
+	}
+	return mapUserTableToEntity(userTable), nil
+}
+
 func (r *userRepository) List(ctx context.Context) ([]entity.User, error) {
 	rows, err := r.queries.ListUsers(ctx)
 	if err != nil {

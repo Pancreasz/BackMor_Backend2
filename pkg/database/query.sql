@@ -7,6 +7,9 @@ WHERE id = $1;
 SELECT id, email, password_hash, display_name, avatar_url, bio, created_at, updated_at
 FROM users;
 
+-- name: GetUserbyEmail :one
+SELECT * FROM user_table WHERE email = $1;
+
 -- name: InsertUser :one
 INSERT INTO users (email, password_hash, display_name, avatar_url, bio)
 VALUES ($1, $2, $3, $4, $5)
