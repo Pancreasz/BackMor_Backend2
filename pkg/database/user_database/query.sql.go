@@ -31,6 +31,27 @@ func (q *Queries) GetUser(ctx context.Context, id int32) (UserTable, error) {
 	return i, err
 }
 
+const getUserbyEmail = `-- name: GetUserbyEmail :one
+SELECT id, username, name, sex, age, hash_pass, email, image_path, created_timestamp FROM user_table WHERE email = $1
+`
+
+func (q *Queries) GetUserbyEmail(ctx context.Context, email string) (UserTable, error) {
+	row := q.db.QueryRowContext(ctx, getUserbyEmail, email)
+	var i UserTable
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Name,
+		&i.Sex,
+		&i.Age,
+		&i.HashPass,
+		&i.Email,
+		&i.ImagePath,
+		&i.CreatedTimestamp,
+	)
+	return i, err
+}
+
 const insertUser = `-- name: InsertUser :one
 INSERT INTO user_table (username, name, sex, age, hash_pass, email)
 VALUES ($1, $2, $3, $4, $5, $6)

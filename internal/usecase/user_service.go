@@ -11,6 +11,7 @@ import (
 
 type UserRepository interface {
 	GetByID(ctx context.Context, id int32) (entity.User, error)
+	GetByEmail(ctx context.Context, email string) (entity.User, error)
 	List(ctx context.Context) ([]entity.User, error)
 	InsertUser(ctx context.Context, username string, name string, sex string, age int32, hashpass string, email string) (entity.User, error)
 }
@@ -25,6 +26,17 @@ func NewUserService(repo UserRepository) *UserService {
 
 func (s *UserService) GetUserByID(ctx context.Context, id int32) (*entity.User, error) {
 	user, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrUserNotFound
+		}
+		return nil, ErrFailedToRetrieveUsers
+	}
+	return &user, nil
+}
+
+func (s *UserService) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+	user, err := s.repo.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrUserNotFound

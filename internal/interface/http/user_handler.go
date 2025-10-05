@@ -15,6 +15,7 @@ import (
 
 type UserService interface {
 	GetUserByID(ctx context.Context, id int32) (*entity.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
 	ListUsers(ctx context.Context) ([]entity.User, error)
 	InsertNewUser(ctx context.Context, username string, name string, sex string, age int32, hashpass string, email string) (*entity.User, error)
 }
@@ -48,6 +49,23 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 	response.SendSuccessResponse(c, user)
 }
 
+func (h *UserHandler) GetUserByEmail(c *gin.Context) {
+	ctx := c.Request.Context()
+	email := c.Param("email")
+
+	user, err := h.service.GetUserByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, usecase.ErrUserNotFound) {
+			response.SendErrorResponse(c, http.StatusNotFound, err)
+			return
+		}
+		response.SendErrorResponse(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.SendSuccessResponse(c, user)
+}
+
 func (h *UserHandler) GetAllUser(c *gin.Context) {
 	ctx := c.Request.Context()
 	users, err := h.service.ListUsers(ctx)
@@ -65,7 +83,7 @@ func (h *UserHandler) InsertNewUser(c *gin.Context) {
 		Username string `json:"username" binding:"required"`
 		Name     string `json:"name" binding:"required"`
 		Sex      string `json:"sex" binding:"required"`
-		Age      int32  `json:"age" binding:"required"`
+		Age      int32
 		Hashpass string `json:"hashpass" binding:"required"`
 		Email    string `json:"email" binding:"required"`
 	}
