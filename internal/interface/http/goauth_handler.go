@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
@@ -37,6 +38,26 @@ func CallbackRoute(c *gin.Context) {
 
 	// Redirect to profile or protected route
 	c.Redirect(http.StatusFound, "/v1/api/user/")
+}
+
+func GetUserDataRoute(c *gin.Context) {
+	session := sessions.Default(c)
+	userEmail := session.Get("user_email")
+	userName := session.Get("user_name")
+
+	if userEmail == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	userData := map[string]interface{}{
+		"email": userEmail,
+		"name":  userName,
+	}
+
+	fmt.Println(userData, "5555555555555555555555555555555")
+
+	c.JSON(http.StatusOK, gin.H{"user": userData})
 }
 
 func Logout(c *gin.Context) {

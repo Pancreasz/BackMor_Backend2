@@ -9,11 +9,13 @@ import (
 )
 
 func Goth_init() {
+
 	goth.UseProviders(
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),
 			os.Getenv("GOOGLE_CLIENT_SECRET"),
 			"http://localhost:8000/v1/api/auth/google/callback",
+			"email", "profile", // add scopes
 		),
 		facebook.New(
 			os.Getenv("facebook_ID"),
