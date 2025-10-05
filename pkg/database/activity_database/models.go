@@ -2,7 +2,7 @@
 // versions:
 //   sqlc v1.30.0
 
-package user_database
+package activity_database
 
 import (
 	"database/sql"
@@ -15,23 +15,23 @@ type Activity struct {
 	ID              uuid.UUID
 	CreatorID       uuid.UUID
 	Title           string
-	Description     sql.NullString
+	Description     *string
 	StartTime       time.Time
-	EndTime         sql.NullTime
-	MaxParticipants sql.NullInt32
-	Visibility      sql.NullString
+	EndTime         *time.Time
+	MaxParticipants *int32
+	Visibility      string
 	Latitude        float64
 	Longitude       float64
-	Location        string
-	CreatedAt       sql.NullTime
-	UpdatedAt       sql.NullTime
+	Location        *string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 type ActivityMember struct {
 	ActivityID uuid.UUID
 	UserID     uuid.UUID
-	Role       sql.NullString
-	JoinedAt   sql.NullTime
+	Role       string
+	JoinedAt   time.Time
 }
 
 type User struct {
@@ -39,8 +39,8 @@ type User struct {
 	Email        string
 	PasswordHash string
 	DisplayName  string
-	AvatarUrl    *string
-	Bio          *string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	AvatarUrl    sql.NullString
+	Bio          sql.NullString
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
 }

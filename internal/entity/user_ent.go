@@ -1,12 +1,18 @@
 package entity
 
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
 type User struct {
-	ID        uint
-	Username  string
-	Name      string
-	Sex       string
-	Age       uint
-	HashPass  string
-	Email     string
-	ImagePath string
+	ID           uuid.UUID
+	Email        string
+	PasswordHash string
+	DisplayName  string
+	AvatarURL    *string
+	Bio          *string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }

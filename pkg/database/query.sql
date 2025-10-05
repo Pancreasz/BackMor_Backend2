@@ -1,11 +1,19 @@
 -- name: GetUser :one
-SELECT * FROM user_table WHERE id = $1;
+SELECT id, email, password_hash, display_name, avatar_url, bio, created_at, updated_at
+FROM users
+WHERE id = $1;
 
 -- name: ListUsers :many
-SELECT * FROM user_table;
+SELECT id, email, password_hash, display_name, avatar_url, bio, created_at, updated_at
+FROM users;
 
 -- name: InsertUser :one
-INSERT INTO user_table (username, name, sex, age, hash_pass, email)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, username, name, sex, age, hash_pass, email, image_path;
+INSERT INTO users (email, password_hash, display_name, avatar_url, bio)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, email, password_hash, display_name, avatar_url, bio, created_at, updated_at;
 
+
+-- name: GetUserByEmail :one
+SELECT id, email, display_name, avatar_url, bio, created_at, updated_at
+FROM users
+WHERE email = $1;

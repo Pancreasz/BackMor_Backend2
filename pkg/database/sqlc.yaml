@@ -1,5 +1,6 @@
 version: "2"
 sql:
+  # Users
   - engine: "postgresql"
     schema: "migration"
     queries: "query.sql"
@@ -7,3 +8,100 @@ sql:
       go:
         package: "user_database"
         out: "user_database"
+        overrides:
+          - column: "users.avatar_url"
+            go_type:
+              type: "*string"
+          - column: "users.bio"
+            go_type:
+              type: "*string"
+          - column: "users.created_at"
+            go_type:
+              type: "time.Time"
+          - column: "users.updated_at"
+            go_type:
+              type: "time.Time"
+          - column: "users.id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+  # Activities
+  - engine: "postgresql"
+    schema: "migration"
+    queries: "activity_query.sql"
+    gen:
+      go:
+        package: "activity_database"
+        out: "activity_database"
+        overrides:
+          - column: "activities.location"
+            go_type:
+              type: "*string"
+          - column: "activities.latitude"
+            go_type:
+              type: "float64"
+          - column: "activities.longitude"
+            go_type:
+              type: "float64"
+          - column: "activities.description"
+            go_type:
+              type: "*string"
+          - column: "activities.end_time"
+            go_type:
+              type: "*time.Time"
+          - column: "activities.max_participants"
+            go_type:
+              type: "*int32"
+          - column: "activities.visibility"
+            go_type:
+              type: "string"
+          - column: "activities.id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+          - column: "activities.creator_id"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+          - column: "activities.start_time"
+            go_type:
+              type: "time.Time"
+          - column: "activities.end_time"
+            go_type:
+              type: "*time.Time"
+          - column: "activities.created_at"
+            go_type:
+              type: "time.Time"
+          - column: "activities.updated_at"
+            go_type:
+              type: "time.Time"
+          # Activity Members
+          - column: "activity_members.role"
+            go_type:
+              type: "string"
+          - column: "activity_members.joined_at"
+            go_type:
+              type: "time.Time"
+  # Activity Members
+  # - engine: "postgresql"
+  #   schema: "migration"
+  #   queries: "activity_member_query.sql"
+  #   gen:
+  #     go:
+  #       package: "activity_member_database"
+  #       out: "activity_member_database"
+  #       overrides:
+  #         - column: "activity_members.activity_id"
+  #           go_type:
+  #             import: "github.com/google/uuid"
+  #             type: "UUID"
+  #         - column: "activity_members.user_id"
+  #           go_type:
+  #             import: "github.com/google/uuid"
+  #             type: "UUID"
+  #         - column: "activity_members.role"
+  #           go_type:
+  #             type: "string"
+  #         - column: "activity_members.joined_at"
+  #           go_type:
+  #             type: "time.Time"

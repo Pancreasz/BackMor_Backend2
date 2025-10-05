@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	entity "github.com/Pancreasz/BackMor_Backend2/internal/entity"
 	"github.com/Pancreasz/BackMor_Backend2/pkg/database/user_database" // sqlc generated package
 )
@@ -19,68 +21,68 @@ func NewUserRepository(db *sql.DB) *userRepository {
 	}
 }
 
-func (r *userRepository) GetByID(ctx context.Context, id int32) (entity.User, error) {
-	userTable, err := r.queries.GetUser(ctx, id)
+func (r *userRepository) GetByID(ctx context.Context, id uuid.UUID) (entity.User, error) {
+	userRow, err := r.queries.GetUser(ctx, id)
 	if err != nil {
 		return entity.User{}, err
 	}
-	return mapUserTableToEntity(userTable), nil
+	return mapUserRowToEntity(userRow), nil
 }
 
 func (r *userRepository) List(ctx context.Context) ([]entity.User, error) {
-	userTables, err := r.queries.ListUsers(ctx)
+	rows, err := r.queries.ListUsers(ctx)
 	if err != nil {
 		return nil, err
 	}
-	users := make([]entity.User, len(userTables))
-	for i, u := range userTables {
-		users[i] = mapUserTableToEntity(u)
+	users := make([]entity.User, len(rows))
+	for i, u := range rows {
+		users[i] = mapUserRowToEntity(u)
 	}
 	return users, nil
 }
 
-func (r *userRepository) InsertUser(ctx context.Context, username string, name string, sex string, age int32, hashpass string, email string) (entity.User, error) {
-	// Prepare params struct expected by sqlc generated method
+func (r *userRepository) InsertUser(ctx context.Context, email, passwordHash, displayName string, avatarURL, bio *string) (entity.User, error) {
 	params := user_database.InsertUserParams{
-		Username: username,
-		Name:     name,
-		Sex:      sex,
-		Age:      age,
-		HashPass: hashpass,
-		Email:    email,
+		Email:        email,
+		PasswordHash: passwordHash,
+		DisplayName:  displayName,
+		AvatarUrl:    avatarURL,
+		Bio:          bio,
 	}
 	fmt.Println(params)
-	// Call the generated InsertUser method
-	user, err := r.queries.InsertUser(ctx, params)
+	userRow, err := r.queries.InsertUser(ctx, params)
+	if err != nil {
+		return entity.User{}, err
+	}
+	return mapUserRowToEntity(userRow), nil
+}
+
+func (r *userRepository) GetByEmail(ctx context.Context, email string) (entity.User, error) {
+	row, err := r.queries.GetUserByEmail(ctx, email)
 	if err != nil {
 		return entity.User{}, err
 	}
 
-	return mapUserTableToEntityFromInsertUserRow(user), nil
+	return entity.User{
+		ID:          row.ID,
+		Email:       row.Email,
+		DisplayName: row.DisplayName,
+		AvatarURL:   row.AvatarUrl,
+		Bio:         row.Bio,
+		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   row.UpdatedAt,
+	}, nil
 }
 
-func mapUserTableToEntity(u user_database.UserTable) entity.User {
+func mapUserRowToEntity(u user_database.User) entity.User {
 	return entity.User{
-		ID:        uint(u.ID),
-		Username:  u.Username,
-		Name:      u.Name,
-		Sex:       u.Sex,
-		Age:       uint(u.Age),
-		HashPass:  u.HashPass,
-		Email:     u.Email,
-		ImagePath: u.ImagePath.String,
-	}
-}
-
-func mapUserTableToEntityFromInsertUserRow(u user_database.InsertUserRow) entity.User {
-	return entity.User{
-		ID:        uint(u.ID),
-		Username:  u.Username,
-		Name:      u.Name,
-		Sex:       u.Sex,
-		Age:       uint(u.Age),
-		HashPass:  u.HashPass,
-		Email:     u.Email,
-		ImagePath: u.ImagePath.String,
+		ID:           u.ID,
+		Email:        u.Email,
+		PasswordHash: u.PasswordHash,
+		DisplayName:  u.DisplayName,
+		AvatarURL:    u.AvatarUrl,
+		Bio:          u.Bio,
+		CreatedAt:    u.CreatedAt,
+		UpdatedAt:    u.UpdatedAt,
 	}
 }

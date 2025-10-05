@@ -7,7 +7,9 @@ import (
 func SetUpRoutes(
 	app *gin.Engine,
 	userService UserService,
+	activityService ActivityService,
 ) {
-	api := app.Group("/v1/api")
+	api := app.Group("/api/v1")
 	SetUpUserRoutes(api, userService)
+	SetUpActivityRoutes(api, activityService)
 }

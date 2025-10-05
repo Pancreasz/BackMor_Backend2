@@ -4,22 +4,32 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
 	_ "github.com/lib/pq"
 )
 
 func Connect() *sql.DB {
-	connStr := "postgresql://postgres:cpre888@localhost:5432/backmor_database?sslmode=disable"
+	connStr := "postgresql://postgres:cpre888@backmor_db2:5432/backmor_database?sslmode=disable"
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal("cannot connect to database:", err)
 	}
 
-	// Optional: test the connection
-	if err := db.Ping(); err != nil {
-		log.Fatal("cannot ping database:", err)
+	// // Optional: test the connection
+	// if err := db.Ping(); err != nil {
+	// 	log.Fatal("cannot ping database:", err)
+	// }
+	for i := 0; i < 10; i++ {
+		if err := db.Ping(); err == nil {
+			fmt.Println("Database connected")
+			return db
+		}
+		log.Println("Database not ready, retrying...")
+		time.Sleep(2 * time.Second)
 	}
+	log.Fatal("cannot connect to database after retries")
 
 	fmt.Println("Database connected")
 	return db

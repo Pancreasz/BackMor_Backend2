@@ -1,0 +1,10 @@
+-- -- name: ListActivityMembers :many
+-- SELECT AM.USER_ID,
+--        U.DISPLAY_NAME,
+--        AM.ROLE,
+--        AM.JOINED_AT
+-- FROM ACTIVITY_MEMBERS AM
+-- JOIN USERS U
+-- ON U.ID = AM.USER_ID
+-- WHERE AM.ACTIVITY_ID = $1
+-- ORDER BY AM.JOINED_AT ASC;

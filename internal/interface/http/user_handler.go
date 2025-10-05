@@ -5,7 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
+
+	"github.com/google/uuid"
 
 	response "github.com/Pancreasz/BackMor_Backend2/infrastructure/router"
 	"github.com/Pancreasz/BackMor_Backend2/internal/entity"
@@ -14,9 +15,10 @@ import (
 )
 
 type UserService interface {
-	GetUserByID(ctx context.Context, id int32) (*entity.User, error)
+	GetUserByID(ctx context.Context, id uuid.UUID) (*entity.User, error)
 	ListUsers(ctx context.Context) ([]entity.User, error)
-	InsertNewUser(ctx context.Context, username string, name string, sex string, age int32, hashpass string, email string) (*entity.User, error)
+	InsertNewUser(ctx context.Context, email string, passwordHash string, displayName string, avatarURL *string, bio *string) (*entity.User, error)
+	GetUserByEmail(ctx context.Context, email string) (entity.User, error)
 }
 
 type UserHandler struct {
@@ -29,13 +31,14 @@ func NewUserServiceHandler(service UserService) *UserHandler {
 
 func (h *UserHandler) GetUserByID(c *gin.Context) {
 	ctx := c.Request.Context()
-	userID, err := strconv.ParseInt(c.Param("id"), 10, 32)
+
+	userID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		response.SendErrorResponse(c, http.StatusBadRequest, err)
+		response.SendErrorResponse(c, http.StatusBadRequest, fmt.Errorf("invalid UUID format"))
 		return
 	}
 
-	user, err := h.service.GetUserByID(ctx, int32(userID))
+	user, err := h.service.GetUserByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, usecase.ErrUserNotFound) {
 			response.SendErrorResponse(c, http.StatusNotFound, err)
@@ -62,24 +65,39 @@ func (h *UserHandler) InsertNewUser(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	var req struct {
-		Username string `json:"username" binding:"required"`
-		Name     string `json:"name" binding:"required"`
-		Sex      string `json:"sex" binding:"required"`
-		Age      int32  `json:"age" binding:"required"`
-		Hashpass string `json:"hashpass" binding:"required"`
-		Email    string `json:"email" binding:"required"`
+		Email        string  `json:"email" binding:"required,email"`
+		PasswordHash string  `json:"password_hash" binding:"required"`
+		DisplayName  string  `json:"display_name" binding:"required"`
+		AvatarURL    *string `json:"avatar_url"`
+		Bio          *string `json:"bio"`
 	}
-	fmt.Println("handler", req.Name, req.Sex)
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.SendErrorResponse(c, http.StatusBadRequest, err)
 		return
 	}
 
-	user, err := h.service.InsertNewUser(ctx, req.Username, req.Name, req.Sex, req.Age, req.Hashpass, req.Email)
+	user, err := h.service.InsertNewUser(ctx, req.Email, req.PasswordHash, req.DisplayName, req.AvatarURL, req.Bio)
 	if err != nil {
 		response.SendErrorResponse(c, http.StatusInternalServerError, err)
 		return
 	}
 
 	response.SendSuccessResponse(c, user)
+}
+
+func (h *UserHandler) GetUserByEmail(c *gin.Context) {
+	email := c.Query("email")
+	if email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "email is required"})
+		return
+	}
+
+	user, err := h.service.GetUserByEmail(c.Request.Context(), email)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
 }
