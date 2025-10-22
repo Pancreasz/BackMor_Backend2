@@ -3,20 +3,17 @@ package main
 import (
 	"fmt"
 	"log"
-
-	"github.com/Pancreasz/BackMor_Backend2/internal/interface/http"
+	"os"
 
 	"github.com/Pancreasz/BackMor_Backend2/infrastructure/db"
+	"github.com/Pancreasz/BackMor_Backend2/infrastructure/router"
+	http "github.com/Pancreasz/BackMor_Backend2/internal/interface/http"
 	repo "github.com/Pancreasz/BackMor_Backend2/internal/interface/persistance"
 	"github.com/Pancreasz/BackMor_Backend2/internal/usecase"
-
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	app := gin.Default()
 	conn := db.Connect()
-	router := gin.Default()
 	defer conn.Close()
 
 	userRepo := repo.NewUserRepository(conn)
@@ -25,14 +22,20 @@ func main() {
 	activityRepo := repo.NewActivityRepository(conn)
 	activityService := usecase.NewActivityService(activityRepo)
 
-	http.SetUpRoutes(
-		app,
-		userService,
-		activityService,
-	)
+	// Create router with CORS + middleware
+	app := router.NewRouter()
 
-	for _, r := range router.Routes() {
+	http.SetUpRoutes(app, userService, activityService)
+
+	// Print registered routes (for debugging)
+	for _, r := range app.Routes() {
 		fmt.Printf("%-6s %s\n", r.Method, r.Path)
 	}
-	log.Fatal(app.Run(":8000"))
+
+	// Run server
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8000"
+	}
+	log.Fatal(app.Run(":" + port))
 }

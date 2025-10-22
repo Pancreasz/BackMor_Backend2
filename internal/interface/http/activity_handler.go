@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	response "github.com/Pancreasz/BackMor_Backend2/infrastructure/router"
+	response "github.com/Pancreasz/BackMor_Backend2/infrastructure/response"
 	"github.com/Pancreasz/BackMor_Backend2/internal/entity"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -99,21 +99,17 @@ func (h *ActivityHandler) CreateActivity(c *gin.Context) {
 }
 
 func (h *ActivityHandler) JoinActivity(c *gin.Context) {
-	activityID, err := uuid.Parse(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid activity id"})
-		return
+	var req struct {
+		ActivityID uuid.UUID `json:"activity_id" binding:"required"`
+		UserID     uuid.UUID `json:"user_id" binding:"required"`
 	}
 
-	var req struct {
-		UserID uuid.UUID `json:"user_id" binding:"required"`
-	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	member, err := h.service.JoinActivity(c.Request.Context(), activityID, req.UserID)
+	member, err := h.service.JoinActivity(c.Request.Context(), req.ActivityID, req.UserID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

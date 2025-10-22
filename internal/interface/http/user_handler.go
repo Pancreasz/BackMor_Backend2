@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
-	response "github.com/Pancreasz/BackMor_Backend2/infrastructure/router"
+	response "github.com/Pancreasz/BackMor_Backend2/infrastructure/response"
 	"github.com/Pancreasz/BackMor_Backend2/internal/entity"
 	"github.com/Pancreasz/BackMor_Backend2/internal/usecase"
 	"github.com/gin-gonic/gin"
