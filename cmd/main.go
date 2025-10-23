@@ -2,43 +2,30 @@ package main
 
 import (
 	"log"
-	"time"
 
 	"github.com/Pancreasz/BackMor_Backend2/infrastructure/config"
-	"github.com/Pancreasz/BackMor_Backend2/internal/interface/http"
-
 	"github.com/Pancreasz/BackMor_Backend2/infrastructure/db"
+	"github.com/Pancreasz/BackMor_Backend2/infrastructure/router"
+	"github.com/Pancreasz/BackMor_Backend2/internal/interface/http"
 	repo "github.com/Pancreasz/BackMor_Backend2/internal/interface/persistance"
 	"github.com/Pancreasz/BackMor_Backend2/internal/usecase"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 )
 
 func main() {
 
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Println("⚠️  No .env file found, relying on system env")
-	}
-	app := gin.Default()
-
-	// Add CORS middleware
-	app.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"}, // Your React app URL
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "Accept"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
+	app := router.NewRouter()
 
 	conn := db.Connect()
 	defer conn.Close()
 
 	config.Session_init()
 	config.Goth_init()
+
+	store := cookie.NewStore(config.HashKey, config.BlockKey)
+	app.Use(sessions.Sessions("mysession", store))
 
 	userRepo := repo.NewUserRepository(conn)
 	userService := usecase.NewUserService(userRepo)
