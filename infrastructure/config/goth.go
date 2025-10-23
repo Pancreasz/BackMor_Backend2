@@ -13,13 +13,13 @@ func Goth_init() {
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),
 			os.Getenv("GOOGLE_CLIENT_SECRET"),
-			"http://localhost:8000/v1/api/auth/google/callback",
+			"http://localhost:8000/api/v1/auth/google/callback",
 			"email", "profile", // add scopes
 		),
 		facebook.New(
 			os.Getenv("facebook_ID"),
 			os.Getenv("facebook_secret"),
-			"http://localhost:8000/v1/api/auth/facebook/callback",
+			"http://localhost:8000/api/v1/auth/facebook/callback",
 			"public_profile", "email",
 		),
 	)

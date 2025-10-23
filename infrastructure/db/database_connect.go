@@ -10,7 +10,7 @@ import (
 )
 
 func Connect() *sql.DB {
-	connStr := "postgresql://postgres:cpre888@backmor_db2:5432/backmor_database?sslmode=disable"
+	connStr := "postgresql://postgres:cpre888@localhost:5432/backmor_database?sslmode=disable"
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {

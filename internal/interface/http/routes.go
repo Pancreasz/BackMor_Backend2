@@ -16,10 +16,9 @@ func SetUpRoutes(
 	api := app.Group("/api/v1")
 	SetUpUserRoutes(api, userService)
 	SetUpActivityRoutes(api, activityService)
-
+	SetUpOAuthRoutes(api)
 	store := cookie.NewStore(config.HashKey, config.BlockKey)
 	app.Use(sessions.Sessions("mysession", store))
 	gothic.Store = store
-	SetUpUserRoutes(api, userService)
-	SetUpOAuthRoutes(api)
+
 }

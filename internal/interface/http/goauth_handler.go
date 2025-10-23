@@ -33,20 +33,20 @@ func CallbackRoute(c *gin.Context) {
 		return
 	}
 
-	// Prepare JSON for POST to /v1/api/user/
+	// Use snake_case field names to match the UserHandler struct tags
 	reqBody := map[string]interface{}{
-		"username": user.Name,
-		"name":     user.Name,
-		"sex":      "unknown",
-		"age":      0,
-		"hashpass": "oauth_login",
-		"email":    user.Email,
+		"display_name":  user.Name,
+		"password_hash": "oauth_login",
+		"email":         user.Email,
+		"bio":           "Text your bio here.",
+		"sex":           "gay",
+		"age":           14,
 	}
 
 	client := &http.Client{}
 
 	// 1️⃣ Check if user already exists
-	checkReq, err := http.NewRequest("GET", "http://localhost:8000/v1/api/user/email/"+user.Email, nil)
+	checkReq, err := http.NewRequest("GET", "http://localhost:8000/api/v1/user/email/"+user.Email, nil)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create check request"})
 		return
@@ -59,9 +59,14 @@ func CallbackRoute(c *gin.Context) {
 	defer checkResp.Body.Close()
 
 	if checkResp.StatusCode == http.StatusOK {
-		// User already exists, skip creation
+		// ✅ User already exists
+		session := sessions.Default(c)
+		session.Set("user_name", user.Name)
+		session.Set("user_email", user.Email)
+		session.Save()
+
 		c.JSON(http.StatusOK, gin.H{
-			"message": "User already exists",
+			"message": "User already exists (OAuth login successful)",
 			"user":    reqBody,
 			"status":  checkResp.Status,
 		})
@@ -75,7 +80,7 @@ func CallbackRoute(c *gin.Context) {
 		return
 	}
 
-	req, err := http.NewRequest("POST", "http://localhost:8000/v1/api/user/", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", "http://localhost:8000/api/v1/user/", bytes.NewBuffer(jsonData))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create POST request"})
 		return
@@ -95,14 +100,17 @@ func CallbackRoute(c *gin.Context) {
 		return
 	}
 
-	// Save user info in session
+	// ✅ Save user info in session (new user)
 	session := sessions.Default(c)
 	session.Set("user_name", user.Name)
 	session.Set("user_email", user.Email)
 	session.Save()
 
+	fmt.Println(session, "i naheeeeeeeeeeeeeeeeeeeee")
+
+	// ✅ Return same-style response as existing user
 	c.JSON(http.StatusOK, gin.H{
-		"message": "User created via OAuth",
+		"message": "User created successfully via OAuth",
 		"user":    reqBody,
 		"status":  resp.Status,
 	})

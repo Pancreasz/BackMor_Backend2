@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/google/uuid"
 
@@ -41,19 +40,29 @@ func (r *userRepository) List(ctx context.Context) ([]entity.User, error) {
 	return users, nil
 }
 
-func (r *userRepository) InsertUser(ctx context.Context, email, passwordHash, displayName string, avatarURL, bio *string) (entity.User, error) {
+func (r *userRepository) InsertUser(
+	ctx context.Context,
+	email, passwordHash, displayName string,
+	avatarURL, bio *string,
+	sex *string,
+	age *int,
+) (entity.User, error) {
+
 	params := user_database.InsertUserParams{
 		Email:        email,
 		PasswordHash: passwordHash,
 		DisplayName:  displayName,
 		AvatarUrl:    avatarURL,
 		Bio:          bio,
+		Sex:          toNullString(sex),
+		Age:          toNullInt32(age),
 	}
-	fmt.Println(params)
+
 	userRow, err := r.queries.InsertUser(ctx, params)
 	if err != nil {
 		return entity.User{}, err
 	}
+
 	return mapUserRowToEntity(userRow), nil
 }
 
@@ -71,6 +80,8 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (entity.U
 		Bio:         row.Bio,
 		CreatedAt:   row.CreatedAt,
 		UpdatedAt:   row.UpdatedAt,
+		Sex:         nullStringToPtr(row.Sex),
+		Age:         nullInt32ToPtr(row.Age),
 	}, nil
 }
 
@@ -84,5 +95,36 @@ func mapUserRowToEntity(u user_database.User) entity.User {
 		Bio:          u.Bio,
 		CreatedAt:    u.CreatedAt,
 		UpdatedAt:    u.UpdatedAt,
+		Sex:          nullStringToPtr(u.Sex),
+		Age:          nullInt32ToPtr(u.Age),
 	}
+}
+
+func nullStringToPtr(ns sql.NullString) *string {
+	if ns.Valid {
+		return &ns.String
+	}
+	return nil
+}
+
+func nullInt32ToPtr(ni sql.NullInt32) *int {
+	if ni.Valid {
+		i := int(ni.Int32)
+		return &i
+	}
+	return nil
+}
+
+func toNullString(s *string) sql.NullString {
+	if s != nil {
+		return sql.NullString{String: *s, Valid: true}
+	}
+	return sql.NullString{Valid: false}
+}
+
+func toNullInt32(i *int) sql.NullInt32 {
+	if i != nil {
+		return sql.NullInt32{Int32: int32(*i), Valid: true}
+	}
+	return sql.NullInt32{Valid: false}
 }

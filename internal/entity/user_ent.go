@@ -15,4 +15,6 @@ type User struct {
 	Bio          *string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	Sex          *string
+	Age          *int
 }

@@ -14,7 +14,7 @@ import (
 type UserRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (entity.User, error)
 	List(ctx context.Context) ([]entity.User, error)
-	InsertUser(ctx context.Context, email string, passwordHash string, displayName string, avatarURL *string, bio *string) (entity.User, error)
+	InsertUser(ctx context.Context, email string, passwordHash string, displayName string, avatarURL *string, bio *string, sex *string, age *int) (entity.User, error)
 	GetByEmail(ctx context.Context, email string) (entity.User, error)
 }
 
@@ -56,9 +56,9 @@ func (s *UserService) ListUsers(ctx context.Context) ([]entity.User, error) {
 	return users, nil
 }
 
-func (s *UserService) InsertNewUser(ctx context.Context, email string, passwordHash string, displayName string, avatarURL *string, bio *string) (*entity.User, error) {
-	user, err := s.repo.InsertUser(ctx, email, passwordHash, displayName, avatarURL, bio)
-	fmt.Println("service", email, passwordHash, displayName, avatarURL, bio)
+func (s *UserService) InsertNewUser(ctx context.Context, email string, passwordHash string, displayName string, avatarURL *string, bio *string, sex *string, age *int) (*entity.User, error) {
+	user, err := s.repo.InsertUser(ctx, email, passwordHash, displayName, avatarURL, bio, sex, age)
+	fmt.Println("service", email, passwordHash, displayName, avatarURL, bio, sex, age)
 	if err != nil {
 		return nil, ErrFailedToInsertUser
 	}
