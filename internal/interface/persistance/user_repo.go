@@ -25,7 +25,7 @@ func (r *userRepository) GetByID(ctx context.Context, id uuid.UUID) (entity.User
 	if err != nil {
 		return entity.User{}, err
 	}
-	return mapUserRowToEntity(userRow), nil
+	return mapGetUserRowToEntity(userRow), nil
 }
 
 func (r *userRepository) List(ctx context.Context) ([]entity.User, error) {
@@ -35,7 +35,7 @@ func (r *userRepository) List(ctx context.Context) ([]entity.User, error) {
 	}
 	users := make([]entity.User, len(rows))
 	for i, u := range rows {
-		users[i] = mapUserRowToEntity(u)
+		users[i] = mapListUsersRowToEntity(u)
 	}
 	return users, nil
 }
@@ -63,7 +63,7 @@ func (r *userRepository) InsertUser(
 		return entity.User{}, err
 	}
 
-	return mapUserRowToEntity(userRow), nil
+	return mapInsertUserRowToEntity(userRow), nil
 }
 
 func (r *userRepository) UpdateUserProfile(
@@ -78,8 +78,8 @@ func (r *userRepository) UpdateUserProfile(
 
 	params := user_database.UpdateUserProfileParams{
 		DisplayName: displayName,
-		AvatarUrl:   avatarURL, // Use *string directly
-		Bio:         bio,       // Use *string directly
+		AvatarUrl:   avatarURL,
+		Bio:         bio,
 		Sex:         toNullString(sex),
 		Age:         toNullInt32(age),
 		Email:       email,
@@ -90,7 +90,7 @@ func (r *userRepository) UpdateUserProfile(
 		return entity.User{}, err
 	}
 
-	return mapUserRowToEntity(userRow), nil
+	return mapUpdateUserProfileRowToEntity(userRow), nil
 }
 
 func (r *userRepository) GetByEmail(ctx context.Context, email string) (entity.User, error) {
@@ -104,6 +104,7 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (entity.U
 		Email:       row.Email,
 		DisplayName: row.DisplayName,
 		AvatarURL:   row.AvatarUrl,
+		AvatarData:  row.AvatarData,
 		Bio:         row.Bio,
 		CreatedAt:   row.CreatedAt,
 		UpdatedAt:   row.UpdatedAt,
@@ -112,13 +113,49 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (entity.U
 	}, nil
 }
 
-func mapUserRowToEntity(u user_database.User) entity.User {
+func (r *userRepository) UpdateUserAvatarData(
+	ctx context.Context,
+	avatarData []byte,
+	email string,
+) (entity.User, error) {
+
+	params := user_database.UpdateUserAvatarDataParams{
+		AvatarData: avatarData,
+		Email:      email,
+	}
+
+	userRow, err := r.queries.UpdateUserAvatarData(ctx, params)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	return entity.User{
+		ID:           userRow.ID,
+		Email:        userRow.Email,
+		PasswordHash: userRow.PasswordHash,
+		DisplayName:  userRow.DisplayName,
+		AvatarURL:    userRow.AvatarUrl,
+		AvatarData:   userRow.AvatarData, // now we have the actual data
+		Bio:          userRow.Bio,
+		CreatedAt:    userRow.CreatedAt,
+		UpdatedAt:    userRow.UpdatedAt,
+		Sex:          nullStringToPtr(userRow.Sex),
+		Age:          nullInt32ToPtr(userRow.Age),
+	}, nil
+}
+
+// -----------------
+// Mappers for each sqlc row type
+// -----------------
+
+func mapGetUserRowToEntity(u user_database.GetUserRow) entity.User {
 	return entity.User{
 		ID:           u.ID,
 		Email:        u.Email,
 		PasswordHash: u.PasswordHash,
 		DisplayName:  u.DisplayName,
 		AvatarURL:    u.AvatarUrl,
+		AvatarData:   nil,
 		Bio:          u.Bio,
 		CreatedAt:    u.CreatedAt,
 		UpdatedAt:    u.UpdatedAt,
@@ -126,6 +163,58 @@ func mapUserRowToEntity(u user_database.User) entity.User {
 		Age:          nullInt32ToPtr(u.Age),
 	}
 }
+
+func mapListUsersRowToEntity(u user_database.ListUsersRow) entity.User {
+	return entity.User{
+		ID:           u.ID,
+		Email:        u.Email,
+		PasswordHash: u.PasswordHash,
+		DisplayName:  u.DisplayName,
+		AvatarURL:    u.AvatarUrl,
+		AvatarData:   nil,
+		Bio:          u.Bio,
+		CreatedAt:    u.CreatedAt,
+		UpdatedAt:    u.UpdatedAt,
+		Sex:          nullStringToPtr(u.Sex),
+		Age:          nullInt32ToPtr(u.Age),
+	}
+}
+
+func mapInsertUserRowToEntity(u user_database.InsertUserRow) entity.User {
+	return entity.User{
+		ID:           u.ID,
+		Email:        u.Email,
+		PasswordHash: u.PasswordHash,
+		DisplayName:  u.DisplayName,
+		AvatarURL:    u.AvatarUrl,
+		AvatarData:   nil,
+		Bio:          u.Bio,
+		CreatedAt:    u.CreatedAt,
+		UpdatedAt:    u.UpdatedAt,
+		Sex:          nullStringToPtr(u.Sex),
+		Age:          nullInt32ToPtr(u.Age),
+	}
+}
+
+func mapUpdateUserProfileRowToEntity(u user_database.UpdateUserProfileRow) entity.User {
+	return entity.User{
+		ID:           u.ID,
+		Email:        u.Email,
+		PasswordHash: u.PasswordHash,
+		DisplayName:  u.DisplayName,
+		AvatarURL:    u.AvatarUrl,
+		AvatarData:   nil, // <-- include AvatarData here
+		Bio:          u.Bio,
+		CreatedAt:    u.CreatedAt,
+		UpdatedAt:    u.UpdatedAt,
+		Sex:          nullStringToPtr(u.Sex),
+		Age:          nullInt32ToPtr(u.Age),
+	}
+}
+
+// -----------------
+// Helper functions
+// -----------------
 
 func nullStringToPtr(ns sql.NullString) *string {
 	if ns.Valid {

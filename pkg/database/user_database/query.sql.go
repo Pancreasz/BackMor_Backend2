@@ -8,6 +8,7 @@ package user_database
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -18,9 +19,22 @@ FROM users
 WHERE id = $1
 `
 
-func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
+type GetUserRow struct {
+	ID           uuid.UUID
+	Email        string
+	PasswordHash string
+	DisplayName  string
+	AvatarUrl    *string
+	Bio          *string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Sex          sql.NullString
+	Age          sql.NullInt32
+}
+
+func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (GetUserRow, error) {
 	row := q.db.QueryRowContext(ctx, getUser, id)
-	var i User
+	var i GetUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
@@ -37,7 +51,7 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 }
 
 const getUserbyEmail = `-- name: GetUserbyEmail :one
-SELECT id, email, password_hash, display_name, avatar_url, bio, created_at, updated_at, sex, age FROM users WHERE email = $1
+SELECT id, email, password_hash, display_name, avatar_url, bio, created_at, updated_at, sex, age, avatar_data FROM users WHERE email = $1
 `
 
 func (q *Queries) GetUserbyEmail(ctx context.Context, email string) (User, error) {
@@ -54,6 +68,7 @@ func (q *Queries) GetUserbyEmail(ctx context.Context, email string) (User, error
 		&i.UpdatedAt,
 		&i.Sex,
 		&i.Age,
+		&i.AvatarData,
 	)
 	return i, err
 }
@@ -74,7 +89,20 @@ type InsertUserParams struct {
 	Age          sql.NullInt32
 }
 
-func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (User, error) {
+type InsertUserRow struct {
+	ID           uuid.UUID
+	Email        string
+	PasswordHash string
+	DisplayName  string
+	AvatarUrl    *string
+	Bio          *string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Sex          sql.NullString
+	Age          sql.NullInt32
+}
+
+func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (InsertUserRow, error) {
 	row := q.db.QueryRowContext(ctx, insertUser,
 		arg.Email,
 		arg.PasswordHash,
@@ -84,7 +112,7 @@ func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (User, e
 		arg.Sex,
 		arg.Age,
 	)
-	var i User
+	var i InsertUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
@@ -105,15 +133,28 @@ SELECT id, email, password_hash, display_name, avatar_url, bio, created_at, upda
 FROM users
 `
 
-func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
+type ListUsersRow struct {
+	ID           uuid.UUID
+	Email        string
+	PasswordHash string
+	DisplayName  string
+	AvatarUrl    *string
+	Bio          *string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Sex          sql.NullString
+	Age          sql.NullInt32
+}
+
+func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 	rows, err := q.db.QueryContext(ctx, listUsers)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []User
+	var items []ListUsersRow
 	for rows.Next() {
-		var i User
+		var i ListUsersRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Email,
@@ -139,6 +180,51 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
+const updateUserAvatarURL = `-- name: UpdateUserAvatarURL :one
+UPDATE users
+SET 
+    avatar_url = $1,
+    updated_at = CURRENT_TIMESTAMP
+WHERE email = $2
+RETURNING id, email, password_hash, display_name, avatar_url, bio, created_at, updated_at, sex, age
+`
+
+type UpdateUserAvatarURLParams struct {
+	AvatarUrl *string
+	Email     string
+}
+
+type UpdateUserAvatarURLRow struct {
+	ID           uuid.UUID
+	Email        string
+	PasswordHash string
+	DisplayName  string
+	AvatarUrl    *string
+	Bio          *string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Sex          sql.NullString
+	Age          sql.NullInt32
+}
+
+func (q *Queries) UpdateUserAvatarURL(ctx context.Context, arg UpdateUserAvatarURLParams) (UpdateUserAvatarURLRow, error) {
+	row := q.db.QueryRowContext(ctx, updateUserAvatarURL, arg.AvatarUrl, arg.Email)
+	var i UpdateUserAvatarURLRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Bio,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Sex,
+		&i.Age,
+	)
+	return i, err
+}
+
 const updateUserProfile = `-- name: UpdateUserProfile :one
 UPDATE users 
 SET 
@@ -161,7 +247,20 @@ type UpdateUserProfileParams struct {
 	Email       string
 }
 
-func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfileParams) (User, error) {
+type UpdateUserProfileRow struct {
+	ID           uuid.UUID
+	Email        string
+	PasswordHash string
+	DisplayName  string
+	AvatarUrl    *string
+	Bio          *string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Sex          sql.NullString
+	Age          sql.NullInt32
+}
+
+func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfileParams) (UpdateUserProfileRow, error) {
 	row := q.db.QueryRowContext(ctx, updateUserProfile,
 		arg.DisplayName,
 		arg.AvatarUrl,
@@ -170,13 +269,60 @@ func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfilePa
 		arg.Age,
 		arg.Email,
 	)
-	var i User
+	var i UpdateUserProfileRow
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
 		&i.PasswordHash,
 		&i.DisplayName,
 		&i.AvatarUrl,
+		&i.Bio,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Sex,
+		&i.Age,
+	)
+	return i, err
+}
+
+const updateUserAvatarData = `-- name: UpdateUserAvatarData :one
+UPDATE users
+SET 
+    avatar_data = $1,
+    updated_at = CURRENT_TIMESTAMP
+WHERE email = $2
+RETURNING id, email, password_hash, display_name, avatar_url, avatar_data, bio, created_at, updated_at, sex, age
+`
+
+type UpdateUserAvatarDataParams struct {
+	AvatarData []byte
+	Email      string
+}
+
+type UpdateUserAvatarDataRow struct {
+	ID           uuid.UUID
+	Email        string
+	PasswordHash string
+	DisplayName  string
+	AvatarUrl    *string
+	AvatarData   []byte
+	Bio          *string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Sex          sql.NullString
+	Age          sql.NullInt32
+}
+
+func (q *Queries) UpdateUserAvatarData(ctx context.Context, arg UpdateUserAvatarDataParams) (UpdateUserAvatarDataRow, error) {
+	row := q.db.QueryRowContext(ctx, updateUserAvatarData, arg.AvatarData, arg.Email)
+	var i UpdateUserAvatarDataRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.AvatarData,
 		&i.Bio,
 		&i.CreatedAt,
 		&i.UpdatedAt,

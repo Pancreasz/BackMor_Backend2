@@ -21,6 +21,7 @@ func main() {
 	conn := db.Connect()
 	defer conn.Close()
 
+	config.InitFirebase()
 	config.Session_init()
 	config.Goth_init()
 

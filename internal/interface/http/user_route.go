@@ -15,5 +15,6 @@ func SetUpUserRoutes(api gin.IRouter, userService UserService) {
 	userRoutes.GET("/email/:email", userHandler.GetUserByEmail)
 	userRoutes.POST("/", userHandler.InsertNewUser)
 	userRoutes.PUT("/profile", userHandler.UpdateUserProfile)
-
+	userRoutes.PUT("/UpdateAvartarURL", userHandler.UpdateUserAvatarURL)
+	userRoutes.PUT("/UpdateAvartarData", userHandler.UpdateUserAvatarData)
 }

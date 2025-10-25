@@ -45,4 +45,5 @@ type User struct {
 	UpdatedAt    sql.NullTime
 	Sex          sql.NullString
 	Age          sql.NullInt32
+	AvatarData   []byte
 }

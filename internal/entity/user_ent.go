@@ -12,6 +12,7 @@ type User struct {
 	PasswordHash string
 	DisplayName  string
 	AvatarURL    *string
+	AvatarData   []byte
 	Bio          *string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
