@@ -10,7 +10,7 @@ import (
 )
 
 func Connect() *sql.DB {
-	connStr := "postgresql://postgres:[YOUR_PASSWORD]@db.nreddhtmpvfcvmsktpai.supabase.co:5432/postgres"
+	connStr := "postgresql://postgres:cpre888@db.nreddhtmpvfcvmsktpai.supabase.co:5432/postgres"
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
