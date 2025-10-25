@@ -8,7 +8,6 @@ package user_database
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -37,30 +36,17 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 	return i, err
 }
 
-const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, display_name, avatar_url, bio, created_at, updated_at, sex, age
-FROM users
-WHERE email = $1
+const getUserbyEmail = `-- name: GetUserbyEmail :one
+SELECT id, email, password_hash, display_name, avatar_url, bio, created_at, updated_at, sex, age FROM users WHERE email = $1
 `
 
-type GetUserByEmailRow struct {
-	ID          uuid.UUID
-	Email       string
-	DisplayName string
-	AvatarUrl   *string
-	Bio         *string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	Sex         sql.NullString
-	Age         sql.NullInt32
-}
-
-func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
-	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
-	var i GetUserByEmailRow
+func (q *Queries) GetUserbyEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserbyEmail, email)
+	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Email,
+		&i.PasswordHash,
 		&i.DisplayName,
 		&i.AvatarUrl,
 		&i.Bio,
@@ -151,4 +137,51 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateUserProfile = `-- name: UpdateUserProfile :one
+UPDATE users 
+SET 
+    display_name = COALESCE($1, display_name),
+    avatar_url = COALESCE($2, avatar_url),
+    bio = COALESCE($3, bio),
+    sex = COALESCE($4, sex),
+    age = COALESCE($5, age),
+    updated_at = CURRENT_TIMESTAMP
+WHERE email = $6
+RETURNING id, email, password_hash, display_name, avatar_url, bio, created_at, updated_at, sex, age
+`
+
+type UpdateUserProfileParams struct {
+	DisplayName string
+	AvatarUrl   *string
+	Bio         *string
+	Sex         sql.NullString
+	Age         sql.NullInt32
+	Email       string
+}
+
+func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfileParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUserProfile,
+		arg.DisplayName,
+		arg.AvatarUrl,
+		arg.Bio,
+		arg.Sex,
+		arg.Age,
+		arg.Email,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Bio,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Sex,
+		&i.Age,
+	)
+	return i, err
 }

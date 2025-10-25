@@ -48,11 +48,13 @@ func CallbackRoute(c *gin.Context) {
 	// 1️⃣ Check if user already exists
 	checkReq, err := http.NewRequest("GET", "http://localhost:8000/api/v1/user/email/"+user.Email, nil)
 	if err != nil {
+		fmt.Println(err, "heeeeeeeeeeeeeeee")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create check request"})
 		return
 	}
 	checkResp, err := client.Do(checkReq)
 	if err != nil {
+		fmt.Println(err, "kuyyyyyyyyyyy")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check existing user"})
 		return
 	}
@@ -65,11 +67,12 @@ func CallbackRoute(c *gin.Context) {
 		session.Set("user_email", user.Email)
 		session.Save()
 
-		c.JSON(http.StatusOK, gin.H{
-			"message": "User already exists (OAuth login successful)",
-			"user":    reqBody,
-			"status":  checkResp.Status,
-		})
+		c.Redirect(http.StatusFound, "http://localhost:3000/")
+		// c.JSON(http.StatusOK, gin.H{
+		// 	"message": "User already exists (OAuth login successful)",
+		// 	"user":    reqBody,
+		// 	"status":  checkResp.Status,
+		// })
 		return
 	}
 
@@ -109,11 +112,12 @@ func CallbackRoute(c *gin.Context) {
 	fmt.Println(session, "i naheeeeeeeeeeeeeeeeeeeee")
 
 	// ✅ Return same-style response as existing user
-	c.JSON(http.StatusOK, gin.H{
-		"message": "User created successfully via OAuth",
-		"user":    reqBody,
-		"status":  resp.Status,
-	})
+	c.Redirect(http.StatusFound, "http://localhost:3000/")
+	// c.JSON(http.StatusOK, gin.H{
+	// 	"message": "User created successfully via OAuth",
+	// 	"user":    reqBody,
+	// 	"status":  resp.Status,
+	// })
 }
 
 func GetUserDataRoute(c *gin.Context) {

@@ -16,6 +16,7 @@ type UserRepository interface {
 	List(ctx context.Context) ([]entity.User, error)
 	InsertUser(ctx context.Context, email string, passwordHash string, displayName string, avatarURL *string, bio *string, sex *string, age *int) (entity.User, error)
 	GetByEmail(ctx context.Context, email string) (entity.User, error)
+	UpdateUserProfile(ctx context.Context, displayName string, avatarURL *string, bio *string, sex *string, age *int, email string) (entity.User, error)
 }
 
 type UserService struct {
@@ -61,6 +62,14 @@ func (s *UserService) InsertNewUser(ctx context.Context, email string, passwordH
 	fmt.Println("service", email, passwordHash, displayName, avatarURL, bio, sex, age)
 	if err != nil {
 		return nil, ErrFailedToInsertUser
+	}
+	return &user, nil
+}
+
+func (s *UserService) UpdateUserProfile(ctx context.Context, displayName string, avatarURL *string, bio *string, sex *string, age *int, email string) (*entity.User, error) {
+	user, err := s.repo.UpdateUserProfile(ctx, displayName, avatarURL, bio, sex, age, email)
+	if err != nil {
+		return nil, ErrFailedToUpdateUser
 	}
 	return &user, nil
 }

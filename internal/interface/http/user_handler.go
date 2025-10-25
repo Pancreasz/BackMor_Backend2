@@ -19,6 +19,7 @@ type UserService interface {
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
 	ListUsers(ctx context.Context) ([]entity.User, error)
 	InsertNewUser(ctx context.Context, email string, passwordHash string, displayName string, avatarURL *string, bio *string, sex *string, age *int) (*entity.User, error)
+	UpdateUserProfile(ctx context.Context, displayName string, avatarURL *string, bio *string, sex *string, age *int, email string) (*entity.User, error)
 }
 
 type UserHandler struct {
@@ -81,6 +82,36 @@ func (h *UserHandler) InsertNewUser(c *gin.Context) {
 
 	user, err := h.service.InsertNewUser(ctx, req.Email, req.PasswordHash, req.DisplayName, req.AvatarURL, req.Bio, req.Sex, req.Age)
 	if err != nil {
+		response.SendErrorResponse(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.SendSuccessResponse(c, user)
+}
+
+func (h *UserHandler) UpdateUserProfile(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	var req struct {
+		Email       string  `json:"email" binding:"required,email"`
+		DisplayName string  `json:"display_name" binding:"required"`
+		AvatarURL   *string `json:"avatar_url"`
+		Bio         *string `json:"bio"`
+		Sex         *string `json:"sex"`
+		Age         *int    `json:"age"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.SendErrorResponse(c, http.StatusBadRequest, err)
+		return
+	}
+
+	user, err := h.service.UpdateUserProfile(ctx, req.DisplayName, req.AvatarURL, req.Bio, req.Sex, req.Age, req.Email)
+	if err != nil {
+		if errors.Is(err, usecase.ErrUserNotFound) {
+			response.SendErrorResponse(c, http.StatusNotFound, err)
+			return
+		}
 		response.SendErrorResponse(c, http.StatusInternalServerError, err)
 		return
 	}

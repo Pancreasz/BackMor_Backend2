@@ -66,8 +66,35 @@ func (r *userRepository) InsertUser(
 	return mapUserRowToEntity(userRow), nil
 }
 
+func (r *userRepository) UpdateUserProfile(
+	ctx context.Context,
+	displayName string,
+	avatarURL *string,
+	bio *string,
+	sex *string,
+	age *int,
+	email string,
+) (entity.User, error) {
+
+	params := user_database.UpdateUserProfileParams{
+		DisplayName: displayName,
+		AvatarUrl:   avatarURL, // Use *string directly
+		Bio:         bio,       // Use *string directly
+		Sex:         toNullString(sex),
+		Age:         toNullInt32(age),
+		Email:       email,
+	}
+
+	userRow, err := r.queries.UpdateUserProfile(ctx, params)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	return mapUserRowToEntity(userRow), nil
+}
+
 func (r *userRepository) GetByEmail(ctx context.Context, email string) (entity.User, error) {
-	row, err := r.queries.GetUserByEmail(ctx, email)
+	row, err := r.queries.GetUserbyEmail(ctx, email)
 	if err != nil {
 		return entity.User{}, err
 	}

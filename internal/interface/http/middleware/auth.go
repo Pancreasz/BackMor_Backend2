@@ -14,7 +14,7 @@ func AuthRequired() gin.HandlerFunc {
 		user := session.Get("user_email") // you should set this in your OAuth callback
 
 		if user == nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.Redirect(http.StatusFound, "http://localhost:3000/login")
 			c.Abort()
 			return
 		}
