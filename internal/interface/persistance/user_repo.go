@@ -144,6 +144,35 @@ func (r *userRepository) UpdateUserAvatarData(
 	}, nil
 }
 
+func (r *userRepository) UpdateUserAvatarURL(
+	ctx context.Context,
+	email string,
+	avatarURL string,
+) (entity.User, error) {
+	params := user_database.UpdateUserAvatarURLParams{
+		AvatarUrl: &avatarURL,
+		Email:     email,
+	}
+
+	userRow, err := r.queries.UpdateUserAvatarURL(ctx, params)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	return entity.User{
+		ID:           userRow.ID,
+		Email:        userRow.Email,
+		PasswordHash: userRow.PasswordHash,
+		DisplayName:  userRow.DisplayName,
+		AvatarURL:    userRow.AvatarUrl,
+		Bio:          userRow.Bio,
+		CreatedAt:    userRow.CreatedAt,
+		UpdatedAt:    userRow.UpdatedAt,
+		Sex:          nullStringToPtr(userRow.Sex),
+		Age:          nullInt32ToPtr(userRow.Age),
+	}, nil
+}
+
 // -----------------
 // Mappers for each sqlc row type
 // -----------------

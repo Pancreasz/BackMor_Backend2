@@ -18,6 +18,7 @@ type UserRepository interface {
 	GetByEmail(ctx context.Context, email string) (entity.User, error)
 	UpdateUserProfile(ctx context.Context, displayName string, avatarURL *string, bio *string, sex *string, age *int, email string) (entity.User, error)
 	UpdateUserAvatarData(ctx context.Context, avatarData []byte, email string) (entity.User, error)
+	UpdateUserAvatarURL(ctx context.Context, email string, avatarURL string) (entity.User, error)
 }
 
 type UserService struct {
@@ -77,6 +78,14 @@ func (s *UserService) UpdateUserProfile(ctx context.Context, displayName string,
 
 func (s *UserService) UpdateUserAvatarData(ctx context.Context, avatarData []byte, email string) (*entity.User, error) {
 	user, err := s.repo.UpdateUserAvatarData(ctx, avatarData, email)
+	if err != nil {
+		return nil, ErrFailedToUpdateUser
+	}
+	return &user, nil
+}
+
+func (s *UserService) UpdateUserAvatarURL(ctx context.Context, email string, avatarURL string) (*entity.User, error) {
+	user, err := s.repo.UpdateUserAvatarURL(ctx, email, avatarURL)
 	if err != nil {
 		return nil, ErrFailedToUpdateUser
 	}

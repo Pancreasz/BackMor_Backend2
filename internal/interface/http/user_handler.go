@@ -9,6 +9,7 @@ import (
 
 	// "time"
 
+	"github.com/Pancreasz/BackMor_Backend2/infrastructure/config"
 	"github.com/google/uuid"
 
 	// "github.com/Pancreasz/BackMor_Backend2/infrastructure/config"
@@ -25,6 +26,7 @@ type UserService interface {
 	InsertNewUser(ctx context.Context, email string, passwordHash string, displayName string, avatarURL *string, bio *string, sex *string, age *int) (*entity.User, error)
 	UpdateUserProfile(ctx context.Context, displayName string, avatarURL *string, bio *string, sex *string, age *int, email string) (*entity.User, error)
 	UpdateUserAvatarData(ctx context.Context, avatarData []byte, email string) (*entity.User, error)
+	UpdateUserAvatarURL(ctx context.Context, email string, avatarURL string) (*entity.User, error)
 }
 
 type UserHandler struct {
@@ -176,56 +178,48 @@ func (h *UserHandler) UpdateUserAvatarData(c *gin.Context) {
 	})
 }
 
-// func (h *UserHandler) UpdateUserAvatarURL(c *gin.Context) {
-// 	// Get file from form-data
-// 	file, header, err := c.Request.FormFile("image")
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "No file found"})
-// 		return
-// 	}
-// 	defer file.Close()
+func (h *UserHandler) UpdateUserAvatarURL(c *gin.Context) {
+	// Get file from form-data
+	file, header, err := c.Request.FormFile("image")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No file found"})
+		return
+	}
+	defer file.Close()
 
-// 	// Get email from form-data
-// 	email := c.PostForm("email")
-// 	if email == "" {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "email is required"})
-// 		return
-// 	}
+	// Read file bytes
+	avatarBytes, err := io.ReadAll(file)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read file"})
+		return
+	}
 
-// Generate unique filename
-// objectName := fmt.Sprintf("uploads/%d_%s", time.Now().Unix(), header.Filename)
+	// Get email from form-data
+	email := c.PostForm("email")
+	if email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "email is required"})
+		return
+	}
 
-// // Upload to Firebase Storage
-// ctx := context.Background()
-// bucket, err := config.StorageClient.Bucket(config.BucketName)
-// if err != nil {
-// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get bucket"})
-// 	return
-// }
+	// Generate a unique file name for blob
+	fileName := fmt.Sprintf("%s-%s", uuid.New().String(), header.Filename)
 
-// wc := bucket.Object(objectName).NewWriter(ctx)
-// if _, err = io.Copy(wc, file); err != nil {
-// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload"})
-// 	return
-// }
+	// Upload to Azure Blob
+	publicURL, err := config.UploadToAzureBlob(fileName, avatarBytes)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload image"})
+		return
+	}
 
-// if err := wc.Close(); err != nil {
-// 	c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to finalize upload: %v", err)})
-// 	return
-// }
+	// Update avatar_url in database
+	updatedUser, err := h.service.UpdateUserAvatarURL(c.Request.Context(), email, publicURL)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update avatar URL in database"})
+		return
+	}
 
-// Construct public URL
-// imageURL := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media", config.BucketName, objectName)
-
-// Update user avatar in database
-// updatedUser, err := h.service.UpdateUserAvatar(ctx, &imageURL, email)
-// if err != nil {
-// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update avatar in database"})
-// 	return
-// }
-
-// c.JSON(http.StatusOK, gin.H{
-// 	"message": "Avatar updated successfully",
-// 	"url":     updatedUser.AvatarURL,
-// })
-// }
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Avatar URL updated successfully",
+		"url":     updatedUser.AvatarURL,
+	})
+}
