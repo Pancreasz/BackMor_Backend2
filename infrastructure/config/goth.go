@@ -6,20 +6,26 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/providers/facebook"
 	"github.com/markbates/goth/providers/google"
+
+	"fmt"
 )
 
 func Goth_init() {
+
+	fmt.Println(os.Getenv("REDIRECT_URL_GOOGLE"), "alalalalalalalalal")
+	fmt.Println(os.Getenv("REDIRECT_URL_FACEBOOK"), "alalalalalalalalal")
+
 	goth.UseProviders(
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),
 			os.Getenv("GOOGLE_CLIENT_SECRET"),
-			"http://localhost:8000/api/v1/auth/google/callback",
+			os.Getenv("REDIRECT_URL_GOOGLE"),
 			"email", "profile", // add scopes
 		),
 		facebook.New(
 			os.Getenv("facebook_ID"),
 			os.Getenv("facebook_secret"),
-			"http://localhost:8000/api/v1/auth/facebook/callback",
+			os.Getenv("REDIRECT_URL_FACEBOOK"),
 			"public_profile", "email",
 		),
 	)

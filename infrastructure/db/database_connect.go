@@ -4,23 +4,30 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	_ "github.com/lib/pq"
 )
 
 func Connect() *sql.DB {
-	connStr := "postgresql://postgres:cpre888@backmor_db2:5432/backmor_database?sslmode=disable"
+	// Read password from environment variable
+	dbPassword := os.Getenv("PAINAI_DB_PASSWORD")
+	// fmt.Println(dbPassword, 12312312312312312)
+	if dbPassword == "" {
+		log.Fatal("PAINAI_DB_PASSWORD environment variable is not set")
+	}
+
+	connStr := fmt.Sprintf(
+		"postgresql://postgres:%s@backmor-database.postgres.database.azure.com:5432/postgres?sslmode=require",
+		dbPassword,
+	)
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal("cannot connect to database:", err)
 	}
 
-	// // Optional: test the connection
-	// if err := db.Ping(); err != nil {
-	// 	log.Fatal("cannot ping database:", err)
-	// }
 	for i := 0; i < 10; i++ {
 		if err := db.Ping(); err == nil {
 			fmt.Println("Database connected")
@@ -29,8 +36,7 @@ func Connect() *sql.DB {
 		log.Println("Database not ready, retrying...")
 		time.Sleep(2 * time.Second)
 	}
-	log.Fatal("cannot connect to database after retries")
 
-	fmt.Println("Database connected")
+	log.Fatal("cannot connect to database after retries")
 	return db
 }

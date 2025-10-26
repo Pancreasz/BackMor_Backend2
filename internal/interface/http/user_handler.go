@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
+
+	// "time"
 
 	"github.com/google/uuid"
 
-	"github.com/Pancreasz/BackMor_Backend2/infrastructure/config"
+	// "github.com/Pancreasz/BackMor_Backend2/infrastructure/config"
 	response "github.com/Pancreasz/BackMor_Backend2/infrastructure/response"
 	"github.com/Pancreasz/BackMor_Backend2/internal/entity"
 	"github.com/Pancreasz/BackMor_Backend2/internal/usecase"
@@ -175,56 +176,56 @@ func (h *UserHandler) UpdateUserAvatarData(c *gin.Context) {
 	})
 }
 
-func (h *UserHandler) UpdateUserAvatarURL(c *gin.Context) {
-	// Get file from form-data
-	file, header, err := c.Request.FormFile("image")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No file found"})
-		return
-	}
-	defer file.Close()
+// func (h *UserHandler) UpdateUserAvatarURL(c *gin.Context) {
+// 	// Get file from form-data
+// 	file, header, err := c.Request.FormFile("image")
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "No file found"})
+// 		return
+// 	}
+// 	defer file.Close()
 
-	// Get email from form-data
-	email := c.PostForm("email")
-	if email == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "email is required"})
-		return
-	}
+// 	// Get email from form-data
+// 	email := c.PostForm("email")
+// 	if email == "" {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "email is required"})
+// 		return
+// 	}
 
-	// Generate unique filename
-	objectName := fmt.Sprintf("uploads/%d_%s", time.Now().Unix(), header.Filename)
+// Generate unique filename
+// objectName := fmt.Sprintf("uploads/%d_%s", time.Now().Unix(), header.Filename)
 
-	// Upload to Firebase Storage
-	ctx := context.Background()
-	bucket, err := config.StorageClient.Bucket(config.BucketName)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get bucket"})
-		return
-	}
+// // Upload to Firebase Storage
+// ctx := context.Background()
+// bucket, err := config.StorageClient.Bucket(config.BucketName)
+// if err != nil {
+// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get bucket"})
+// 	return
+// }
 
-	wc := bucket.Object(objectName).NewWriter(ctx)
-	if _, err = io.Copy(wc, file); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload"})
-		return
-	}
+// wc := bucket.Object(objectName).NewWriter(ctx)
+// if _, err = io.Copy(wc, file); err != nil {
+// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload"})
+// 	return
+// }
 
-	if err := wc.Close(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to finalize upload: %v", err)})
-		return
-	}
+// if err := wc.Close(); err != nil {
+// 	c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to finalize upload: %v", err)})
+// 	return
+// }
 
-	// Construct public URL
-	// imageURL := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media", config.BucketName, objectName)
+// Construct public URL
+// imageURL := fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media", config.BucketName, objectName)
 
-	// Update user avatar in database
-	// updatedUser, err := h.service.UpdateUserAvatar(ctx, &imageURL, email)
-	// if err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update avatar in database"})
-	// 	return
-	// }
+// Update user avatar in database
+// updatedUser, err := h.service.UpdateUserAvatar(ctx, &imageURL, email)
+// if err != nil {
+// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update avatar in database"})
+// 	return
+// }
 
-	// c.JSON(http.StatusOK, gin.H{
-	// 	"message": "Avatar updated successfully",
-	// 	"url":     updatedUser.AvatarURL,
-	// })
-}
+// c.JSON(http.StatusOK, gin.H{
+// 	"message": "Avatar updated successfully",
+// 	"url":     updatedUser.AvatarURL,
+// })
+// }

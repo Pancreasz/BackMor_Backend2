@@ -23,13 +23,14 @@ INSERT INTO users (email, password_hash, display_name, avatar_url, bio, sex, age
 VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING id, email, password_hash, display_name, avatar_url, bio, created_at, updated_at, sex, age;
 
--- UpdateUserAvatarData :one
+-- name: UpdateUserAvatarData :one
 UPDATE users
 SET 
     avatar_data = $1,
     updated_at = CURRENT_TIMESTAMP
 WHERE email = $2
-RETURNING id, email, password_hash, display_name, avatar_data, bio, created_at, updated_at, sex, age;
+RETURNING id, email, password_hash, display_name, avatar_url, bio, created_at, updated_at, sex, age, avatar_data;
+
 
 
 -- name: UpdateUserProfile :one

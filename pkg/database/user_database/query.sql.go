@@ -180,6 +180,39 @@ func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 	return items, nil
 }
 
+const updateUserAvatarData = `-- name: UpdateUserAvatarData :one
+UPDATE users
+SET 
+    avatar_data = $1,
+    updated_at = CURRENT_TIMESTAMP
+WHERE email = $2
+RETURNING id, email, password_hash, display_name, avatar_url, bio, created_at, updated_at, sex, age, avatar_data
+`
+
+type UpdateUserAvatarDataParams struct {
+	AvatarData []byte
+	Email      string
+}
+
+func (q *Queries) UpdateUserAvatarData(ctx context.Context, arg UpdateUserAvatarDataParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUserAvatarData, arg.AvatarData, arg.Email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.Bio,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Sex,
+		&i.Age,
+		&i.AvatarData,
+	)
+	return i, err
+}
+
 const updateUserAvatarURL = `-- name: UpdateUserAvatarURL :one
 UPDATE users
 SET 
@@ -276,53 +309,6 @@ func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfilePa
 		&i.PasswordHash,
 		&i.DisplayName,
 		&i.AvatarUrl,
-		&i.Bio,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.Sex,
-		&i.Age,
-	)
-	return i, err
-}
-
-const updateUserAvatarData = `-- name: UpdateUserAvatarData :one
-UPDATE users
-SET 
-    avatar_data = $1,
-    updated_at = CURRENT_TIMESTAMP
-WHERE email = $2
-RETURNING id, email, password_hash, display_name, avatar_url, avatar_data, bio, created_at, updated_at, sex, age
-`
-
-type UpdateUserAvatarDataParams struct {
-	AvatarData []byte
-	Email      string
-}
-
-type UpdateUserAvatarDataRow struct {
-	ID           uuid.UUID
-	Email        string
-	PasswordHash string
-	DisplayName  string
-	AvatarUrl    *string
-	AvatarData   []byte
-	Bio          *string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	Sex          sql.NullString
-	Age          sql.NullInt32
-}
-
-func (q *Queries) UpdateUserAvatarData(ctx context.Context, arg UpdateUserAvatarDataParams) (UpdateUserAvatarDataRow, error) {
-	row := q.db.QueryRowContext(ctx, updateUserAvatarData, arg.AvatarData, arg.Email)
-	var i UpdateUserAvatarDataRow
-	err := row.Scan(
-		&i.ID,
-		&i.Email,
-		&i.PasswordHash,
-		&i.DisplayName,
-		&i.AvatarUrl,
-		&i.AvatarData,
 		&i.Bio,
 		&i.CreatedAt,
 		&i.UpdatedAt,

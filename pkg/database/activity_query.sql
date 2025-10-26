@@ -46,3 +46,12 @@ FROM activities a
 JOIN activity_members am ON a.id = am.activity_id
 WHERE am.user_id = $1
 ORDER BY a.start_time;
+
+-- name: DeleteActivity :exec
+DELETE FROM activities
+WHERE id = $1;
+
+-- name: DeleteActivityMember :exec
+DELETE FROM activity_members
+WHERE activity_id = $1 AND user_id = $2;
+

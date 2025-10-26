@@ -18,6 +18,8 @@ type ActivityService interface {
 	JoinActivity(ctx context.Context, activityID, userID uuid.UUID) (entity.ActivityMemberResponse, error)
 	GetActivityByID(ctx context.Context, id uuid.UUID) (entity.Activity, error)
 	ListActivitiesByUser(ctx context.Context, userID uuid.UUID) ([]entity.Activity, error)
+	DeleteActivity(ctx context.Context, activityID uuid.UUID) error
+	RemoveActivityMember(ctx context.Context, activityID, userID uuid.UUID) error
 }
 
 type ActivityHandler struct {
@@ -149,4 +151,39 @@ func (h *ActivityHandler) ListActivitiesByUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, activities)
+}
+
+func (h *ActivityHandler) DeleteActivity(c *gin.Context) {
+	idStr := c.Param("id")
+	activityID, err := uuid.Parse(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid activity id"})
+		return
+	}
+
+	if err := h.service.DeleteActivity(c.Request.Context(), activityID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+func (h *ActivityHandler) RemoveActivityMember(c *gin.Context) {
+	var req struct {
+		ActivityID uuid.UUID `json:"activity_id" binding:"required"`
+		UserID     uuid.UUID `json:"user_id" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.service.RemoveActivityMember(c.Request.Context(), req.ActivityID, req.UserID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }

@@ -13,4 +13,6 @@ func SetUpActivityRoutes(api gin.IRouter, activityService ActivityService) {
 	activityRoutes.GET("/:id/members", activityHandler.GetActivityMembers)
 	activityRoutes.POST("/join", activityHandler.JoinActivity)
 	activityRoutes.GET("/by-user", activityHandler.ListActivitiesByUser)
+	activityRoutes.DELETE("/delete_activity/:id", activityHandler.DeleteActivity)
+	activityRoutes.DELETE("/delete_mem_activity", activityHandler.RemoveActivityMember)
 }

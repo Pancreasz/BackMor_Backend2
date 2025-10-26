@@ -16,6 +16,8 @@ type ActivityService interface {
 	JoinActivity(ctx context.Context, activityID, userID uuid.UUID) (entity.ActivityMemberResponse, error)
 	GetActivityByID(ctx context.Context, id uuid.UUID) (entity.Activity, error)
 	ListActivitiesByUser(ctx context.Context, userID uuid.UUID) ([]entity.Activity, error)
+	DeleteActivity(ctx context.Context, activityID uuid.UUID) error
+	RemoveActivityMember(ctx context.Context, activityID, userID uuid.UUID) error
 }
 
 type activityService struct {
@@ -55,4 +57,12 @@ func (s *activityService) GetActivityByID(ctx context.Context, id uuid.UUID) (en
 
 func (s *activityService) ListActivitiesByUser(ctx context.Context, userID uuid.UUID) ([]entity.Activity, error) {
 	return s.repo.ListActivitiesByUser(ctx, userID)
+}
+
+func (s *activityService) DeleteActivity(ctx context.Context, activityID uuid.UUID) error {
+	return s.repo.Delete(ctx, activityID)
+}
+
+func (s *activityService) RemoveActivityMember(ctx context.Context, activityID, userID uuid.UUID) error {
+	return s.repo.RemoveMember(ctx, activityID, userID)
 }

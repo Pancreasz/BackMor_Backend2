@@ -16,6 +16,8 @@ type ActivityRepository interface {
 	AddMember(ctx context.Context, activityID, userID uuid.UUID, role string) (entity.ActivityMemberResponse, error)
 	GetByID(ctx context.Context, id uuid.UUID) (entity.Activity, error)
 	ListActivitiesByUser(ctx context.Context, userID uuid.UUID) ([]entity.Activity, error)
+	Delete(ctx context.Context, activityID uuid.UUID) error
+	RemoveMember(ctx context.Context, activityID, userID uuid.UUID) error
 	// Later: Update, Delete
 }
 
@@ -113,6 +115,17 @@ func (r *activityRepository) ListActivitiesByUser(ctx context.Context, userID uu
 		activities = append(activities, mapActivity(row))
 	}
 	return activities, nil
+}
+
+func (r *activityRepository) Delete(ctx context.Context, activityID uuid.UUID) error {
+	return r.queries.DeleteActivity(ctx, activityID)
+}
+
+func (r *activityRepository) RemoveMember(ctx context.Context, activityID, userID uuid.UUID) error {
+	return r.queries.DeleteActivityMember(ctx, activity_database.DeleteActivityMemberParams{
+		ActivityID: activityID,
+		UserID:     userID,
+	})
 }
 
 // Helper to map sqlc struct → entity struct

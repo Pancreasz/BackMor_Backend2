@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -44,17 +46,22 @@ func CallbackRoute(c *gin.Context) {
 	}
 
 	client := &http.Client{}
-
+	azureEndpoint := os.Getenv("AZURE_ENDPOINT")
+	if azureEndpoint == "" {
+		log.Fatal("AZURE_ENDPOINT environment variable is not set")
+	}
+	fullURL := fmt.Sprintf("%s/api/v1/user/email/%s", azureEndpoint, user.Email)
+	// fmt.Println(fullURL, "urllllllllllllllllllll1111111111111111111")
 	// 1️⃣ Check if user already exists
-	checkReq, err := http.NewRequest("GET", "http://localhost:8000/api/v1/user/email/"+user.Email, nil)
+	checkReq, err := http.NewRequest("GET", fullURL, nil)
 	if err != nil {
-		fmt.Println(err, "heeeeeeeeeeeeeeee")
+		// fmt.Println(err, "heeeeeeeeeeeeeeee")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create check request"})
 		return
 	}
 	checkResp, err := client.Do(checkReq)
 	if err != nil {
-		fmt.Println(err, "kuyyyyyyyyyyy")
+		// fmt.Println(err, "kuyyyyyyyyyyy")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check existing user"})
 		return
 	}
@@ -78,12 +85,16 @@ func CallbackRoute(c *gin.Context) {
 
 	// 2️⃣ User does not exist, create new one
 	jsonData, err := json.Marshal(reqBody)
+
+	// fmt.Println(jsonData, "bodyyyyyyyyyyyy")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to encode JSON"})
 		return
 	}
 
-	req, err := http.NewRequest("POST", "http://localhost:8000/api/v1/user/", bytes.NewBuffer(jsonData))
+	fullURL2 := fmt.Sprintf("%s/api/v1/user/", azureEndpoint)
+	// fmt.Println(fullURL2, "urllllllllllllllllllll2222222222222222222222")
+	req, err := http.NewRequest("POST", fullURL2, bytes.NewBuffer(jsonData))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create POST request"})
 		return
@@ -109,7 +120,7 @@ func CallbackRoute(c *gin.Context) {
 	session.Set("user_email", user.Email)
 	session.Save()
 
-	fmt.Println(session, "i naheeeeeeeeeeeeeeeeeeeee")
+	// fmt.Println(session, "i naheeeeeeeeeeeeeeeeeeeee")
 
 	// ✅ Return same-style response as existing user
 	c.Redirect(http.StatusFound, "http://localhost:3000/")
@@ -134,7 +145,7 @@ func GetUserDataRoute(c *gin.Context) {
 		"email": userEmail,
 		"name":  userName,
 	}
-	fmt.Println(userData, "5555555555555555555555555555555")
+	// fmt.Println(userData, "5555555555555555555555555555555")
 
 	c.JSON(http.StatusOK, gin.H{"user": userData})
 }

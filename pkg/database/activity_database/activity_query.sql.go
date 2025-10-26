@@ -36,6 +36,31 @@ func (q *Queries) AddActivityMember(ctx context.Context, arg AddActivityMemberPa
 	return i, err
 }
 
+const deleteActivity = `-- name: DeleteActivity :exec
+DELETE FROM activities
+WHERE id = $1
+`
+
+func (q *Queries) DeleteActivity(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteActivity, id)
+	return err
+}
+
+const deleteActivityMember = `-- name: DeleteActivityMember :exec
+DELETE FROM activity_members
+WHERE activity_id = $1 AND user_id = $2
+`
+
+type DeleteActivityMemberParams struct {
+	ActivityID uuid.UUID
+	UserID     uuid.UUID
+}
+
+func (q *Queries) DeleteActivityMember(ctx context.Context, arg DeleteActivityMemberParams) error {
+	_, err := q.db.ExecContext(ctx, deleteActivityMember, arg.ActivityID, arg.UserID)
+	return err
+}
+
 const getActivityByID = `-- name: GetActivityByID :one
 SELECT id, creator_id, title, description, start_time, end_time, max_participants, visibility, latitude, longitude, location, created_at, updated_at
 FROM activities
